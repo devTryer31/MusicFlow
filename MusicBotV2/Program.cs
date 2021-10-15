@@ -6,28 +6,25 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using MusicBot;
+using MusicBotV2.Services;
+using MusicBotV2.Services.BotServices;
+using MusicBotV2.Services.Static;
 
-namespace MusicWebServer
+namespace MusicBotV2
 {
 	public class Program
 	{
-		public static async Task Main(string[] args)
+		public static void Main(string[] args)
 		{
+			ConfigurationService.Initialize();
 			var host = CreateHostBuilder(args).Build();
 
-			Configuration.Initialize();
-			var bot = host.Services.GetService(typeof(Bot)) as Bot;
+			var bot = host.Services.GetService(typeof(BotService)) as BotService;
 
-			try {
-				bot!.StartBot();
-			}
-			catch (Exception e) {
-				Console.WriteLine(e.Message);
-			}
+			bot!.StartBot();
 
-			await host.RunAsync();
-			bot!.StopBot();
+			host.Run();
+			bot.StopBot();
 		}
 
 		public static IHostBuilder CreateHostBuilder(string[] args) =>

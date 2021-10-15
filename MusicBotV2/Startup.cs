@@ -9,9 +9,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using MusicBot;
+using MusicBotV2.Services;
+using MusicBotV2.Services.BotServices;
+using MusicBotV2.Services.Interfaces;
 
-namespace MusicWebServer
+namespace MusicBotV2
 {
 	public class Startup
 	{
@@ -21,23 +23,23 @@ namespace MusicWebServer
 		}
 
 		public IConfiguration Configuration { get; }
-		
+
+		// This method gets called by the runtime. Use this method to add services to the container.
 		public void ConfigureServices(IServiceCollection services)
 		{
-			var _Bot = new Bot();
-			var _SpotyManager = new SpotifyManager();
 
-			services.AddSingleton(_Bot);
+			services.AddSingleton<IMusicService, SpotifyManager>();
 
-			services.AddSingleton(_SpotyManager);
+			services.AddSingleton<Handlers>();
 
-			services.AddSingleton(_SpotyManager);
+			services.AddSingleton<BotService>();
 
-			//services.AddSingleton(new Handlers(_Bot, _SpotyManager));
+			
 
 			services.AddControllers();
 		}
-		
+
+		// This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
 		public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
 		{
 			if (env.IsDevelopment()) {
@@ -50,7 +52,6 @@ namespace MusicWebServer
 
 			app.UseEndpoints(endpoints =>
 			{
-				//endpoints.MapControllers();
 				endpoints.MapControllerRoute(
 					"default",
 					"/{controller=Home}/{action=Index}/{id?}"
