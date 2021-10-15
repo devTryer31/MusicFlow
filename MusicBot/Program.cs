@@ -16,14 +16,17 @@ namespace MusicBot
 
             try
             {
+                // bot launch
                 Bot.StartBot();
                 await SpotifyManager.Launch();
                 Console.ReadKey();
+                // bot stop
                 Bot.StopBot();
                 SpotifyManager.Stop();
             }
             catch (Exception e)
             {
+                // printing error information to the console
                 Console.WriteLine(e.Message);
             }
 
