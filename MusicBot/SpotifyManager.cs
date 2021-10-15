@@ -40,6 +40,7 @@ namespace MusicBot
         private static async Task Start()
         {
             var json = await File.ReadAllTextAsync(CredentialsPath);
+            // Getting a token from a json file
             var token = JsonConvert.DeserializeObject<PKCETokenResponse>(json);
 
             var authenticator = new PKCEAuthenticator(clientId!, token!);
@@ -52,6 +53,7 @@ namespace MusicBot
             var spotify = new SpotifyClient(config);
             _spotifyClient = spotify;
 
+            // Getting the current user
             var me = await spotify.UserProfile.Current();
             Console.WriteLine($"Welcome {me.DisplayName} ({me.Id}), you're authenticated!");
         }
@@ -99,6 +101,7 @@ namespace MusicBot
             }
             catch (Exception e)
             {
+                // Printing error information to the console
                 Console.WriteLine(e.Message);
             }
 
