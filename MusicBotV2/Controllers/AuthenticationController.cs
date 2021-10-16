@@ -1,8 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using System;
+using Microsoft.AspNetCore.Mvc;
 using MusicBotV2.Services.Interfaces;
 
 namespace MusicBotV2.Controllers
@@ -17,16 +14,20 @@ namespace MusicBotV2.Controllers
 		}
 
 		// http://localhost:5000/callback?code=KZws3Qz6EVkfN&state=12345
-		public IActionResult Index(string stringRequest)
+		public IActionResult Index(string code, long? state)
 		{
-			var res = stringRequest.Split('&');
+			if (string.IsNullOrWhiteSpace(code) || state is null)
+				return Content($"Нет параметров для AuthenticationController");
 
-			string token = res[0].Split('=')[1];
-			string chatID = res[1].Split('=')[1];
 
-			_MusicService.AuthenticationFromRawTokenAsync(token, chatID);
+			//var res = stringRequest.Split('&');
 
-			return StatusCode(200);
+			//string token = res[0].Split('=')[1];
+			//string chatID = res[1].Split('=')[1];
+
+			_MusicService.AuthenticationFromRawTokenAsync(code, state.Value);
+
+			return Content($"В чат {state} был установлен хост.");
 		}
 	}
 }

@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using MusicBotV2.Services.Interfaces;
@@ -51,8 +48,19 @@ namespace MusicBotV2.Services.BotServices
 			if (update.Message.Type != MessageType.Text)
 				return;
 
-			var chatId = update.Message.Chat.Id.ToString();
-			Console.WriteLine($"Received a '{update.Message.Text}' message in chat {chatId}.");
+			var chatId = update.Message.Chat.Id;
+			string current_message = update.Message.Text;
+			Console.WriteLine($"Received a '{current_message}' message in chat {chatId}.");
+
+			if (current_message.ToLower() == "host")
+			{
+				BotService.SendMessageAsync(
+					botClient,
+					update,
+					"Follow the link: " + SpotifyManager.BuildAuthenticationLink(chatId)
+					);
+				return;
+			}
 
 			string url = update.Message.Text; // URL to the song, that client send
 			var spotifyTrackId = await  LinkHandler.HandleLinkOrDefaultAsync(url);
