@@ -54,7 +54,20 @@ namespace MusicBotV2.Services.BotServices
 			string current_message = update.Message.Text;
 			//Console.WriteLine($"Received a '{current_message}' message in chat {chatId}.");
 
+
+			//Host handling.
 			if (current_message.ToLower() == "хост") {
+				
+				var isHostSet = InMemoryDatabaseTest.Data.ContainsKey(chatId);
+				if (isHostSet)
+				{
+					await botClient.SendTextMessageAsync(chatId,
+						"В данный момент команда недоступна. Запросите хост-аккаунт отказаться от данной роли.",
+						cancellationToken: cancellationToken
+						).ConfigureAwait(false);
+					return;
+				}
+
 				await botClient.SendTextMessageAsync(
 					chatId,
 					"Перейдите по ссылке: " + SpotifyManager.BuildAuthenticationLink(chatId),

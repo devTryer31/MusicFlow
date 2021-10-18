@@ -29,7 +29,7 @@ namespace MusicBotV2.Controllers
 
 			var chat = await _BotClient.GetChatAsync(state);
 
-			return Content($"В чат {chat.Title} был установлен хост.");
+			return Content($"В чат '{chat.Title}' был установлен хост.");
 		}
 	}
 }
