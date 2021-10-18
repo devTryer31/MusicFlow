@@ -1,6 +1,11 @@
 ﻿using System;
+using System.IO;
+using System.Net;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Web;
+using Newtonsoft.Json.Linq;
+using SpotifyAPI.Web;
 
 namespace MusicBotV2.Services.Static
 {
