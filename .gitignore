@@ -490,6 +490,6 @@ $RECYCLE.BIN/
 *.lnk
 
 # Files with tokens
-*.txt
+config.txt
 
 # End of https://www.toptal.com/developers/gitignore/api/rider,csharp,windows
