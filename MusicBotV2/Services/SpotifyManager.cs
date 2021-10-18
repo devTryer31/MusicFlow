@@ -11,11 +11,11 @@ namespace MusicBotV2.Services
 {
 	public class SpotifyManager : IMusicService
 	{
-		public static string AuthenticationLink { get; } = "https://accounts.spotify.com/authorize" +
-		                                                   "?client_id=" + ConfigurationService.ClientID +
-		                                                   "&response_type=code" +
-		                                                   "&scope=user-read-playback-state" + 
-		                                                   "&redirect_uri=" + ConfigurationService.ServerAuthUri;
+		//public static string AuthenticationLink { get; } = "https://accounts.spotify.com/authorize" +
+		//                                                   "?client_id=" + ConfigurationService.ClientID +
+		//                                                   "&response_type=code" +
+		//                                                   "&scope=user-read-playback-state" + 
+		//                                                   "&redirect_uri=" + ConfigurationService.ServerAuthUri;
 
 		public static SpotifyClient VerifyClient { get; } = new(
 			SpotifyClientConfig
@@ -71,7 +71,7 @@ namespace MusicBotV2.Services
 			{
 				CodeChallenge = _verifier.challenge,
 				CodeChallengeMethod = "S256",
-				Scope = new List<string> { UserReadPlaybackState },
+				Scope = new List<string> { UserModifyPlaybackState },
 				State = chatId.ToString()
 			};
 			

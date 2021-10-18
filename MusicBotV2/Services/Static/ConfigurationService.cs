@@ -6,8 +6,8 @@ namespace MusicBotV2.Services.Static
 	public static class ConfigurationService
 	{
 
-		public const string ServerAuthStrUri = "http://localhost:5000/Authentication";
-		public static readonly Uri ServerAuthUri =  new("http://localhost:5000/Authentication");
+		public const string ServerAuthStrUri = ServerUri + "/Authentication";
+		public static readonly Uri ServerAuthUri =  new(ServerAuthStrUri);
 		public const string ServerUri = "http://localhost:5000";
 
 		private static string? _token;

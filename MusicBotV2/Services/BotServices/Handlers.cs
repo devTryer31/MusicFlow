@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using MusicBotV2.Data;
 using MusicBotV2.Services.Interfaces;
 using MusicBotV2.Services.Static;
 using Telegram.Bot;
@@ -52,8 +53,7 @@ namespace MusicBotV2.Services.BotServices
 			string current_message = update.Message.Text;
 			Console.WriteLine($"Received a '{current_message}' message in chat {chatId}.");
 
-			if (current_message.ToLower() == "host")
-			{
+			if (current_message.ToLower() == "host") {
 				BotService.SendMessageAsync(
 					botClient,
 					update,
@@ -63,18 +63,26 @@ namespace MusicBotV2.Services.BotServices
 			}
 
 			string url = update.Message.Text; // URL to the song, that client send
-			var spotifyTrackId = await  LinkHandler.HandleLinkOrDefaultAsync(url);
-
-			string msg = string.Empty;
+			var spotifyTrackId = await LinkHandler.HandleLinkOrDefaultAsync(url);
 
 			if (spotifyTrackId is null)
-				msg = WrongLinkMessage;
-			else
-			{
-				var isAdded = await _MusicService.AddToQueueAsync(spotifyTrackId, chatId);
+				return;
 
-				msg = isAdded ? ScsMessage : ErrMessage;
+
+			if (!InMemoryDatabaseTest.Data.ContainsKey(chatId)) {
+				BotService.SendMessageAsync(
+					botClient,
+					update,
+					"The host is not set. Please select an account to play."
+				);
+				return;
 			}
+
+			Console.WriteLine("spotifyTrackId: {0}", spotifyTrackId);
+			var isAdded = await _MusicService.AddToQueueAsync(spotifyTrackId, chatId);
+
+			string msg = isAdded ? ScsMessage : ErrMessage;
+
 
 			BotService.SendMessageAsync(
 					botClient,
