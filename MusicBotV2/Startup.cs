@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using MusicBotV2.Services;
 using MusicBotV2.Services.BotServices;
 using MusicBotV2.Services.Interfaces;
+using MusicBotV2.Services.Static;
 
 namespace MusicBotV2
 {
@@ -27,14 +28,9 @@ namespace MusicBotV2
 		// This method gets called by the runtime. Use this method to add services to the container.
 		public void ConfigureServices(IServiceCollection services)
 		{
-
 			services.AddSingleton<IMusicService, SpotifyManager>();
-
-			services.AddSingleton<Handlers>();
-
-			services.AddSingleton<BotService>();
-
 			
+			services.AddSingleton<BotService>();
 
 			services.AddControllers();
 		}
@@ -47,8 +43,6 @@ namespace MusicBotV2
 			}
 
 			app.UseRouting();
-
-			app.UseAuthorization();
 
 			app.UseEndpoints(endpoints =>
 			{

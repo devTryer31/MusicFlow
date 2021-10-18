@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using MusicBotV2.Data;
@@ -14,8 +15,8 @@ namespace MusicBotV2.Services.BotServices
 	public class Handlers
 	{
 		private const string WrongLinkMessage = "Неверная ссылка";
-		private const string ScsMessage = "Ссылка успешно обработана";
-		private const string ErrMessage = "Ошибка добавления";
+		private const string ScsTrackMessage = "Трек успешно добавлен.";
+		private const string ErrTrackMessage = "Ошибка добавления трека.";
 
 
 		private readonly IMusicService _MusicService;
@@ -51,44 +52,55 @@ namespace MusicBotV2.Services.BotServices
 
 			var chatId = update.Message.Chat.Id;
 			string current_message = update.Message.Text;
-			Console.WriteLine($"Received a '{current_message}' message in chat {chatId}.");
+			//Console.WriteLine($"Received a '{current_message}' message in chat {chatId}.");
 
-			if (current_message.ToLower() == "host") {
-				BotService.SendMessageAsync(
-					botClient,
-					update,
-					"Follow the link: " + SpotifyManager.BuildAuthenticationLink(chatId)
-					);
+			if (current_message.ToLower() == "хост") {
+				await botClient.SendTextMessageAsync(
+					chatId,
+					"Перейдите по ссылке: " + SpotifyManager.BuildAuthenticationLink(chatId),
+					replyToMessageId: update.Message.MessageId,
+					cancellationToken: cancellationToken
+				).ConfigureAwait(false);
+				;
 				return;
 			}
 
-			string url = update.Message.Text; // URL to the song, that client send
-			var spotifyTrackId = await LinkHandler.HandleLinkOrDefaultAsync(url);
+			//Link handling.
+			if (Regex.IsMatch(current_message, "https?://.+")) {
+				if (!InMemoryDatabaseTest.Data.ContainsKey(chatId)) {
+					await botClient.SendTextMessageAsync(
+						chatId,
+						"Аккаунт для воспроизведения не установлен. Пожалуйста, введите 'хост' для установки.",
+						replyToMessageId: update.Message.MessageId,
+						cancellationToken: cancellationToken
+					).ConfigureAwait(false);
+					return;
+				}
 
-			if (spotifyTrackId is null)
-				return;
+				var spotifyTrackId = await LinkHandler.HandleLinkOrDefaultAsync(current_message);
 
+				if (spotifyTrackId is null) {
+					await botClient.SendTextMessageAsync(
+						chatId,
+						WrongLinkMessage,
+						replyToMessageId: update.Message.MessageId,
+						cancellationToken: cancellationToken
+					).ConfigureAwait(false);
+					return;
+				}
 
-			if (!InMemoryDatabaseTest.Data.ContainsKey(chatId)) {
-				BotService.SendMessageAsync(
-					botClient,
-					update,
-					"The host is not set. Please select an account to play."
-				);
-				return;
+				Console.WriteLine("spotifyTrackId: {0}", spotifyTrackId);
+				var isAdded = await _MusicService.AddToQueueAsync(spotifyTrackId, chatId);
+
+				string msg = isAdded ? ScsTrackMessage : ErrTrackMessage;
+
+				await botClient.SendTextMessageAsync(
+						chatId,
+						msg,
+						replyToMessageId: update.Message.MessageId,
+						cancellationToken: cancellationToken
+				).ConfigureAwait(false);
 			}
-
-			Console.WriteLine("spotifyTrackId: {0}", spotifyTrackId);
-			var isAdded = await _MusicService.AddToQueueAsync(spotifyTrackId, chatId);
-
-			string msg = isAdded ? ScsMessage : ErrMessage;
-
-
-			BotService.SendMessageAsync(
-					botClient,
-					update,
-					msg
-				);
 		}
 	}
 }

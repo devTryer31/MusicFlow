@@ -11,12 +11,6 @@ namespace MusicBotV2.Services
 {
 	public class SpotifyManager : IMusicService
 	{
-		//public static string AuthenticationLink { get; } = "https://accounts.spotify.com/authorize" +
-		//                                                   "?client_id=" + ConfigurationService.ClientID +
-		//                                                   "&response_type=code" +
-		//                                                   "&scope=user-read-playback-state" + 
-		//                                                   "&redirect_uri=" + ConfigurationService.ServerAuthUri;
-
 		public static SpotifyClient VerifyClient { get; } = new(
 			SpotifyClientConfig
 				.CreateDefault()

@@ -1,15 +1,11 @@
 ﻿using System;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using SpotifyAPI.Web;
-using Swan;
 
 namespace MusicBotV2.Services.Static
 {
 	public static class LinkHandler
 	{
-
-
 		private const string PatternSpotify = @"https:\/\/open\.spotify\.com\/track\/(.{22})\?";
 
 		//TODO: Rebuild.
@@ -31,8 +27,8 @@ namespace MusicBotV2.Services.Static
 				try { //Is track id existed?
 					await SpotifyManager.VerifyClient.Tracks.Get(id).ConfigureAwait(false);
 				}
-				catch (AggregateException e) {
-					if (e.Message == "non existing id")
+				catch (Exception) {
+					//if (e.Message == "non existing id")
 						return null;
 				}
 
