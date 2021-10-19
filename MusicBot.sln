@@ -9,6 +9,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MusicFlow.Domain", "MusicFl
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MusicFlow.DAL", "MusicFlow.DAL\MusicFlow.DAL.csproj", "{24B6225A-2D29-44FB-9792-7425EE899372}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MusicFlow.DAL.SQLite", "MusicFlow.DAL.SQLight\MusicFlow.DAL.SQLite.csproj", "{7078639C-DEC2-4076-828B-983B1E58796E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{24B6225A-2D29-44FB-9792-7425EE899372}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{24B6225A-2D29-44FB-9792-7425EE899372}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{24B6225A-2D29-44FB-9792-7425EE899372}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7078639C-DEC2-4076-828B-983B1E58796E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7078639C-DEC2-4076-828B-983B1E58796E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7078639C-DEC2-4076-828B-983B1E58796E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7078639C-DEC2-4076-828B-983B1E58796E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
