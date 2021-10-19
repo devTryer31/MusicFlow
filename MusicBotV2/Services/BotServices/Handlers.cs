@@ -101,8 +101,7 @@ namespace MusicBotV2.Services.BotServices
 					).ConfigureAwait(false);
 					return;
 				}
-
-				Console.WriteLine("spotifyTrackId: {0}", spotifyTrackId);
+				
 				var isAdded = await _MusicService.AddToQueueAsync(spotifyTrackId, chatId);
 
 				string msg = isAdded ? ScsTrackMessage : ErrTrackMessage;
