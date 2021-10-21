@@ -2,9 +2,10 @@
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using MusicBotV2.Data;
+using Microsoft.EntityFrameworkCore;
 using MusicBotV2.Services.Interfaces;
 using MusicBotV2.Services.Static;
+using MusicFlow.DAL.Context;
 using Telegram.Bot;
 using Telegram.Bot.Exceptions;
 using Telegram.Bot.Types;
@@ -20,10 +21,12 @@ namespace MusicBotV2.Services.BotServices
 
 
 		private readonly IMusicService _MusicService;
+		private readonly MusicFlowDb _Db;
 
-		public Handlers(IMusicService musicService)
+		public Handlers(IMusicService musicService, MusicFlowDb db)
 		{
 			_MusicService = musicService;
+			_Db = db;
 		}
 
 		public static Task HandleErrorAsync(ITelegramBotClient botClient,
@@ -50,17 +53,19 @@ namespace MusicBotV2.Services.BotServices
 			if (update.Message.Type != MessageType.Text)
 				return;
 
+			var current_user = update.Message.From.Id;
 			var chatId = update.Message.Chat.Id;
 			string current_message = update.Message.Text;
-			//Console.WriteLine($"Received a '{current_message}' message in chat {chatId}.");
+			Console.WriteLine($"Received a '{current_message}' message in chat {chatId} from user {current_user}.");
 
+			var chat = await _Db.Chats.FirstOrDefaultAsync(c => c.TelegramChatId == chatId,
+				cancellationToken: cancellationToken).ConfigureAwait(false);
 
 			//Host handling.
 			if (current_message.ToLower() == "хост") {
 				
-				var isHostSet = InMemoryDatabaseTest.Data.ContainsKey(chatId);
-				if (isHostSet)
-				{
+				var isHostSet = chat is not null;
+				if (isHostSet) {
 					await botClient.SendTextMessageAsync(chatId,
 						"В данный момент команда недоступна. Запросите хост-аккаунт отказаться от данной роли.",
 						cancellationToken: cancellationToken
@@ -70,7 +75,7 @@ namespace MusicBotV2.Services.BotServices
 
 				await botClient.SendTextMessageAsync(
 					chatId,
-					"Перейдите по ссылке: " + SpotifyManager.BuildAuthenticationLink(chatId),
+					"Перейдите по ссылке: " + SpotifyManager.BuildAuthenticationLink(chatId, current_user),
 					replyToMessageId: update.Message.MessageId,
 					cancellationToken: cancellationToken
 				).ConfigureAwait(false);
@@ -80,7 +85,7 @@ namespace MusicBotV2.Services.BotServices
 
 			//Link handling.
 			if (Regex.IsMatch(current_message, "https?://.+")) {
-				if (!InMemoryDatabaseTest.Data.ContainsKey(chatId)) {
+				if (chat is null) {
 					await botClient.SendTextMessageAsync(
 						chatId,
 						"Аккаунт для воспроизведения не установлен. Пожалуйста, введите 'хост' для установки.",
@@ -102,10 +107,11 @@ namespace MusicBotV2.Services.BotServices
 					return;
 				}
 
-				Console.WriteLine("spotifyTrackId: {0}", spotifyTrackId);
+				//Console.WriteLine("spotifyTrackId: {0}", spotifyTrackId);
 				var isAdded = await _MusicService.AddToQueueAsync(spotifyTrackId, chatId);
 
-				string msg = isAdded ? ScsTrackMessage : ErrTrackMessage;
+				string msg = isAdded is null ? "У хоста нет активного Spotify клиента." : 
+					(isAdded.Value ? ScsTrackMessage : ErrTrackMessage);
 
 				await botClient.SendTextMessageAsync(
 						chatId,

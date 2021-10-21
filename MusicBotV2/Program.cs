@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using MusicBotV2.Services;
 using MusicBotV2.Services.BotServices;
 using MusicBotV2.Services.Static;
@@ -19,7 +20,9 @@ namespace MusicBotV2
 			ConfigurationService.Initialize();
 			var host = CreateHostBuilder(args).Build();
 
-			var bot = host.Services.GetService(typeof(BotService)) as BotService;
+			using var scope = host.Services.CreateScope();
+			var bot = scope.ServiceProvider.GetService<BotService>();
+
 
 			bot!.StartBot();
 

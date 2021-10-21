@@ -32,7 +32,8 @@ namespace MusicBotV2
 		{
 			services.AddDbContext<MusicFlowDb>(opt =>
 				opt.UseSqlite(Configuration.GetConnectionString("SQLite"),
-					o => o.MigrationsAssembly("MusicFlow.DAL.SQLite")));
+					o => o.MigrationsAssembly("MusicFlow.DAL.SQLite")),
+				ServiceLifetime.Singleton);
 			
 			services.AddSingleton<IMusicService, SpotifyManager>();
 			
