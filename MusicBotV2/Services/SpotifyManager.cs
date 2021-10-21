@@ -105,7 +105,7 @@ namespace MusicBotV2.Services
 			if (chat?.HostUserId is null || string.IsNullOrWhiteSpace(chat.Token) || string.IsNullOrWhiteSpace(chat.RefreshToken))
 				return chat;
 
-			//Need update token.
+			//TODO:Need update token.
 			//var response = await new OAuthClient().RequestToken(
 			//	new PKCETokenRefreshRequest(ConfigurationService.ClientID!, chat.RefreshToken)
 			//);
