@@ -32,7 +32,7 @@ namespace MusicBotV2.Services
 		{
 			PKCETokenResponse response = await new OAuthClient().RequestToken(
 				new PKCETokenRequest(ConfigurationService.ClientID!, rawToken, ConfigurationService.ServerAuthUri, _verifier.verifier)
-			);
+			).ConfigureAwait(false);
 			//var authenticator = new PKCEAuthenticator(ConfigurationService.ClientID!, token!);
 			//authenticator.TokenRefreshed += (sender, t) =>
 			//	token = t; // TODO: database adding.
@@ -41,14 +41,25 @@ namespace MusicBotV2.Services
 			//	.WithAuthenticator(authenticator);
 
 			//var spotify = new SpotifyClient(config);
-
-			await _Db.Chats.AddAsync(new Chat
+			var chat = await _Db.Chats.FirstOrDefaultAsync(ch => ch.TelegramChatId == chatId);
+			if (chat is null)
 			{
-				TelegramChatId = chatId,
-				Token = response.AccessToken,
-				HostUserId = hostId,
-				RefreshToken = response.RefreshToken
-			}).ConfigureAwait(false);
+				await _Db.Chats.AddAsync(new Chat
+				{
+					TelegramChatId = chatId,
+					Token = response.AccessToken,
+					HostUserId = hostId,
+					RefreshToken = response.RefreshToken
+				}).ConfigureAwait(false);
+			}
+			else
+			{
+				chat.HostUserId = hostId;
+				chat.Token = response.AccessToken;
+				chat.RefreshToken = response.RefreshToken;
+				_Db.Chats.Update(chat);
+			}
+			
 			await _Db.SaveChangesAsync();
 		}
 		
