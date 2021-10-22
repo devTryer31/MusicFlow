@@ -497,3 +497,6 @@ config.txt
 [Tt]estConsoleApp/
 
 # End of https://www.toptal.com/developers/gitignore/api/rider,csharp,windows
+*.db
+*.db-shm
+*.db-wal

@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using MusicBotV2.Data;
+using Microsoft.EntityFrameworkCore;
 using MusicBotV2.Services.Interfaces;
 using MusicBotV2.Services.Static;
+using MusicFlow.DAL.Context;
+using MusicFlow.Domain.Entities;
 using SpotifyAPI.Web;
 using static SpotifyAPI.Web.Scopes;
 
@@ -21,41 +23,60 @@ namespace MusicBotV2.Services
 				)
 		);
 
-
-		public async Task AuthenticationFromRawTokenAsync(string rawToken, long chatId)
+		public SpotifyManager(MusicFlowDb db)
 		{
-			//var (verifier, challenge) = PKCEUtil.GenerateCodes();
+			_Db = db;
+		}
 
-			PKCETokenResponse token = await new OAuthClient().RequestToken(
+		public async Task AuthenticationFromRawTokenAsync(string rawToken, long chatId, long hostId)
+		{
+			PKCETokenResponse response = await new OAuthClient().RequestToken(
 				new PKCETokenRequest(ConfigurationService.ClientID!, rawToken, ConfigurationService.ServerAuthUri, _verifier.verifier)
 			);
-
-			var authenticator = new PKCEAuthenticator(ConfigurationService.ClientID!, token!);
+			//var authenticator = new PKCEAuthenticator(ConfigurationService.ClientID!, token!);
 			//authenticator.TokenRefreshed += (sender, t) =>
 			//	token = t; // TODO: database adding.
 
-			var config = SpotifyClientConfig.CreateDefault()
-				.WithAuthenticator(authenticator);
+			//var config = SpotifyClientConfig.CreateDefault()
+			//	.WithAuthenticator(authenticator);
 
-			var spotify = new SpotifyClient(config);
+			//var spotify = new SpotifyClient(config);
 
-			InMemoryDatabaseTest.Data.Add(chatId, spotify); //TODO: move it to database reflection.
+			await _Db.Chats.AddAsync(new Chat
+			{
+				TelegramChatId = chatId,
+				Token = response.AccessToken,
+				HostUserId = hostId,
+				RefreshToken = response.RefreshToken
+			}).ConfigureAwait(false);
+			await _Db.SaveChangesAsync();
 		}
-
-		public async Task<bool> AddToQueueAsync(string correctMusicLink, long chatId)
+		
+		/// <returns>Return null if thrown APIException with message "Player command failed: No active device found"</returns>
+		public async Task<bool?> AddToQueueAsync(string correctMusicLink, long chatId)
 		{
-			var db = InMemoryDatabaseTest.Data;
-			if (!db.ContainsKey(chatId))
+			var chat = await GetChatWithUpdatedTokenAsync(chatId).ConfigureAwait(false);
+			if (chat?.HostUserId is null)
 				return false;
 
-			var spotify = InMemoryDatabaseTest.Data[chatId];
+			var spotify = new SpotifyClient(chat.Token);
+			try
+			{
+				return await spotify.Player.AddToQueue(new PlayerAddToQueueRequest(correctMusicLink));
+			}
+			catch (APIException e)
+			{
+				if (e.Message == "Player command failed: No active device found")
+					return null;
+			}
 
-			return await spotify.Player.AddToQueue(new PlayerAddToQueueRequest(correctMusicLink));
+			return false;
 		}
 
 		private static (string verifier, string challenge) _verifier;
+		private readonly MusicFlowDb _Db;
 
-		public static string BuildAuthenticationLink(long chatId)
+		public static string BuildAuthenticationLink(long chatId, long hostId)
 		{
 			_verifier = PKCEUtil.GenerateCodes();
 
@@ -66,12 +87,36 @@ namespace MusicBotV2.Services
 				CodeChallenge = _verifier.challenge,
 				CodeChallengeMethod = "S256",
 				Scope = new List<string> { UserModifyPlaybackState },
-				State = chatId.ToString()
+				State = chatId + "+" + hostId
 			};
 			
 			
 			//return SpotifyManager.AuthenticationLink + $"&state={chat_id}";
 			return request.ToUri().ToString();
+		}
+
+		/// <param name="chatId">Telegram chat id</param>
+		/// <returns>Founded chat if it has a null fields. Null if not found. Chat with updated host spotify token.</returns>
+		public async Task<Chat> GetChatWithUpdatedTokenAsync(long chatId)
+		{
+			var chat = await _Db.Chats.FirstOrDefaultAsync(ch => ch.TelegramChatId == chatId)
+				.ConfigureAwait(false);
+			
+			if (chat?.HostUserId is null || string.IsNullOrWhiteSpace(chat.Token) || string.IsNullOrWhiteSpace(chat.RefreshToken))
+				return chat;
+
+			//TODO:Need update token.
+			//var response = await new OAuthClient().RequestToken(
+			//	new PKCETokenRefreshRequest(ConfigurationService.ClientID!, chat.RefreshToken)
+			//);
+			
+			//if(response.IsExpired)
+			//	chat.Token = response.AccessToken;
+
+			//_Db.Chats.Update(chat);
+			//await _Db.SaveChangesAsync();
+
+			return chat;
 		}
 	}
 }

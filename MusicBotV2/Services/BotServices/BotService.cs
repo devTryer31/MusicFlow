@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using MusicBotV2.Services.Interfaces;
 using MusicBotV2.Services.Static;
+using MusicFlow.DAL.Context;
 using Telegram.Bot;
 using Telegram.Bot.Extensions.Polling;
 
@@ -17,9 +18,9 @@ namespace MusicBotV2.Services.BotServices
 
 		public bool IsStarted { get; private set; }
 
-		public BotService(ILogger<BotService> logger, IMusicService musicService)
-		{
-			_Handlers = new Handlers(musicService);
+		public BotService(ILogger<BotService> logger, IMusicService musicService, MusicFlowDb db)
+		{//it construct twice while scoped.
+			_Handlers = new Handlers(musicService, db);
 			_Logger = logger;
 		}
 
