@@ -6,7 +6,6 @@ using MusicBotV2.Services.Static;
 using MusicFlow.DAL.Context;
 using Telegram.Bot;
 using Telegram.Bot.Extensions.Polling;
-using Telegram.Bot.Types;
 
 namespace MusicBotV2.Services.BotServices
 {
