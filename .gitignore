@@ -491,12 +491,16 @@ $RECYCLE.BIN/
 
 # Files with tokens
 config.txt
+config.json
 
 # Folder for test projets
 [Tt]est/
 [Tt]estConsoleApp/
 
-# End of https://www.toptal.com/developers/gitignore/api/rider,csharp,windows
+
+# Database files
 *.db
 *.db-shm
 *.db-wal
+
+# End of https://www.toptal.com/developers/gitignore/api/rider,csharp,windows
