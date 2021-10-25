@@ -6,21 +6,32 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using MusicBotV2.Services;
 using MusicBotV2.Services.BotServices;
 using MusicBotV2.Services.Static;
+using MusicFlow.DAL.Context;
 
 namespace MusicBotV2
 {
 	public class Program
 	{
-		public static void Main(string[] args)
+		public static async Task Main(string[] args)
 		{
 			ConfigurationService.Initialize();
 			var host = CreateHostBuilder(args).Build();
 
-			var bot = host.Services.GetService(typeof(BotService)) as BotService;
+			using var scope = host.Services.CreateScope();
+			var bot = scope.ServiceProvider.GetService<BotService>();
+			var dbContext = scope.ServiceProvider.GetService<MusicFlowDb>();
+			var migrations = await dbContext.Database.GetPendingMigrationsAsync();
 
+			if (migrations.Any())
+			{
+				await dbContext.Database.MigrateAsync();
+			}
+			
 			bot!.StartBot();
 
 			host.Run();

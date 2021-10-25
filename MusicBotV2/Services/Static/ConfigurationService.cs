@@ -1,118 +1,113 @@
 ﻿#nullable enable
 using System;
 using System.IO;
+using System.Text.Json;
 
 namespace MusicBotV2.Services.Static
 {
     public static class ConfigurationService
     {
+        public const string ServerUri = "http://localhost:5000";
         public const string ServerAuthStrUri = ServerUri + "/Authentication";
         public static readonly Uri ServerAuthUri = new(ServerAuthStrUri);
-        public const string ServerUri = "http://localhost:5000";
-        private const string FileName = "config.txt";
+        
+        private const string FileName = "config.json";
+        private static Configuration? _configuration;
 
-        #region Fields for secret data
-
-        private static string? _token;
-        private static string? _clientID;
-        private static string? _clientSecret;
-        private static string? _IFAPIKey;
-
-        #endregion
-
-        #region Getters for secret data
+        #region Properties for secret data
 
         public static string? Token
         {
             get
             {
-                if (_token == null)
+                if (_configuration?.Token == null)
                 {
                     throw new ArgumentNullException(Token);
                 }
 
-                return _token;
+                return _configuration.Token;
             }
-            private set => _token = value;
         }
 
         public static string? ClientID
         {
             get
             {
-                if (_clientID == null)
+                if (_configuration?.ClientId == null)
                 {
                     throw new ArgumentNullException(ClientID);
                 }
 
-                return _clientID;
+                return _configuration.ClientId;
             }
-
-            private set => _clientID = value;
         }
 
         public static string? ClientSecret
         {
             get
             {
-                if (_clientSecret is null)
-                    throw new ArgumentNullException(_clientSecret);
+                if (_configuration?.ClientSecret is null)
+                    throw new ArgumentNullException(ClientSecret);
 
-                return _clientSecret;
+                return _configuration.ClientSecret;
             }
-
-            private set => _clientSecret = value;
         }
 
         public static string? IFAPIKey
         {
             get
             {
-                if (_IFAPIKey is null)
-                    throw new ArgumentNullException(_IFAPIKey);
+                if (_configuration?.IFAPIKey is null)
+                    throw new ArgumentNullException(IFAPIKey);
 
-                return _IFAPIKey;
+                return _configuration.IFAPIKey;
             }
-            private set => _IFAPIKey = value;
         }
 
         #endregion
 
+        /// <summary>
+        /// Load configuration data from json file or initiate manual input
+        /// </summary>
         public static void Initialize()
         {
-            string? token = null,
-                clientID = null,
-                clientSecret = null,
-                ifApiKey = null;
-
             if (File.Exists(FileName))
             {
                 // read from file
-                using StreamReader sr = new StreamReader(FileName);
-                token = sr.ReadLine();
-                clientID = sr.ReadLine();
-                clientSecret = sr.ReadLine();
-                ifApiKey = sr.ReadLine();
-                sr.Close();
+                string data = File.ReadAllText(FileName);
+                _configuration = JsonSerializer.Deserialize<Configuration>(data);
 
-                if (token is not null &&
-                    clientID is not null &&
-                    clientSecret is not null &&
-                    ifApiKey is not null)
+                if (_configuration is not null &&
+                    _configuration.Token is not null &&
+                    _configuration.ClientId is not null &&
+                    _configuration.ClientSecret is not null &&
+                    _configuration.IFAPIKey is not null)
                 {
-                    Token = token;
-                    ClientID = clientID;
-                    ClientSecret = clientSecret;
-                    IFAPIKey = ifApiKey;
-
+                    // If all fields are loaded — loading is successful
                     return;
                 }
             }
 
             // manual input
+            _configuration = InputConfigFromConsole();
+
+            SaveToFile();
+        }
+
+        /// <summary>
+        /// Read config data from console
+        /// </summary>
+        /// <returns>New configuration</returns>
+        private static Configuration InputConfigFromConsole()
+        {
             Console.ForegroundColor = ConsoleColor.Red;
             Console.WriteLine("File not found or values are missing");
             Console.ResetColor();
+
+            string? token = null,
+                clientID = null,
+                clientSecret = null,
+                ifApiKey = null;
 
             while (token is null || clientID is null || clientSecret is null || ifApiKey is null)
             {
@@ -129,20 +124,28 @@ namespace MusicBotV2.Services.Static
                 ifApiKey = Console.ReadLine();
             }
 
-            Token = token;
-            ClientID = clientID;
-            ClientSecret = clientSecret;
-            IFAPIKey = ifApiKey;
-            SaveToFile();
+            return new Configuration
+            {
+                Token = token,
+                ClientId = clientID,
+                ClientSecret = clientSecret,
+                IFAPIKey = ifApiKey
+            };
         }
 
+
+        /// <summary>
+        /// Save configuration data to json file
+        /// </summary>
         private static void SaveToFile()
         {
-            using StreamWriter sw = new(FileName);
-            sw.WriteLine(Token);
-            sw.WriteLine(ClientID);
-            sw.WriteLine(ClientSecret);
-            sw.Close();
+            JsonSerializerOptions jsp = new()
+            {
+                WriteIndented = true
+            };
+            
+            string data = JsonSerializer.Serialize(_configuration, jsp);
+            File.WriteAllText(FileName, data);
         }
     }
 }
