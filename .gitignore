@@ -503,4 +503,9 @@ config.json
 *.db-shm
 *.db-wal
 
+# File with application settings
+appsettings.json
+MusicBotV2/appsettings.json
+MusicBotV2/bin/appsettings.json
+
 # End of https://www.toptal.com/developers/gitignore/api/rider,csharp,windows
