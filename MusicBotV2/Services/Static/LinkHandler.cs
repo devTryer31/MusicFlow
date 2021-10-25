@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Web;
 using Newtonsoft.Json.Linq;
 using SpotifyAPI.Web;
+using Yandex.Music.Api;
 
 namespace MusicBotV2.Services.Static
 {
@@ -13,6 +14,7 @@ namespace MusicBotV2.Services.Static
     {
         private const string PatternSpotify = @"https:\/\/open\.spotify\.com\/track\/(.{22})\?";
         private const string PatternAppleMusic = @"https:\/\/music\.apple\.com\/.+album\/.+\?i=(\d{9})";
+        private const string PatternYandexMusic = @"https:\/\/music.yandex.ru\/album\/\d+\/track\/(\d+)";
         private const string PatternIFramelySongInfo = @"\<(.+)\>.?\((.+)\)";
         private const string SpotifyPrefix = "spotify:track:";
 
@@ -21,7 +23,7 @@ namespace MusicBotV2.Services.Static
         /// <returns>Correct Spotify track Id or null if track not found.</returns>
         public static async Task<string> HandleLinkOrDefaultAsync(string url)
         {
-            //If Spotify.
+            // If Spotify.
             var match = Regex.Match(url, PatternSpotify);
             if (match.Success)
             {
@@ -39,11 +41,18 @@ namespace MusicBotV2.Services.Static
                 return SpotifyPrefix + id;
             }
 
-            //If Apple music
+            // If Apple music
             match = Regex.Match(url, PatternAppleMusic);
             if (match.Success)
             {
                 return AppleMusicToSpotifyId(url);
+            }
+            
+            // If Yandex Music
+            match = Regex.Match(url, PatternYandexMusic);
+            if (match.Success)
+            {
+                return YandexMusicToSpotifyID(match.Groups[1].Value);
             }
 
             return null;
@@ -120,7 +129,29 @@ namespace MusicBotV2.Services.Static
             var res =
                 SpotifyManager.VerifyClient.Search.Item(new SearchRequest(SearchRequest.Types.Track, songInfo));
 
-            return res.Result.Tracks.Items[0].Uri;
+            return res.Result.Tracks.Items?[0].Uri;
+        }
+
+        public static string YandexMusicToSpotifyID(string trackID)
+        {
+            try
+            {
+                var YAPI = new YandexMusicApi();
+                var res = YAPI.GetTrack(trackID);
+
+                var artistName = res.Artists[0].Name;
+                var title = res.Title;
+
+                if (string.IsNullOrEmpty(artistName) || string.IsNullOrEmpty(title))
+                    return null;
+                
+                var info = artistName + " " + title;
+                return FindSongInSpotify(info);
+            }
+            catch (Exception)
+            {
+                return null;
+            }
         }
     }
 }

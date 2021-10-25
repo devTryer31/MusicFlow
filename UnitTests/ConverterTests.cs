@@ -65,6 +65,29 @@ namespace UnitTests
         {
             return LinkHandler.HandleLinkOrDefaultAsync(testLink).Result; 
         }
+
+        [TestCase(@"https://music.yandex.ru/album/3015939/track/19641303", 
+            ExpectedResult = "spotify:track:1lgN0A2Vki2FTON5PYq42m")]
+        public string TestCorrectYandexMusicLink(string testLink)
+        {
+            return LinkHandler.HandleLinkOrDefaultAsync(testLink).Result; 
+        }
+        
+        [TestCase(@"https://music.yandex.ru/album/3015939/track/00000000", ExpectedResult = null)]
+        public string TestCorrectYandexMusicLinkWithWrongTrackID(string testLink)
+        {
+            return LinkHandler.HandleLinkOrDefaultAsync(testLink).Result; 
+        }
+        
+        [TestCase(@"https://msic.yandex.ru/album/3015939/track/19641303", ExpectedResult = null)]
+        [TestCase(@"https://music.yadex.ru/album/3015939/track/19641303", ExpectedResult = null)]
+        [TestCase(@"https://music.yandex.r/album/3015939/track/19641303", ExpectedResult = null)]
+        [TestCase(@"https://music.yandex.ru/alum/3015939/track/19641303", ExpectedResult = null)]
+        [TestCase(@"https://music.yandex.ru/album/3015939/trck/19641303", ExpectedResult = null)]
+        public string TestWrongYandexMusicLink(string testLink)
+        {
+            return LinkHandler.HandleLinkOrDefaultAsync(testLink).Result;
+        }
         
     }
 }
