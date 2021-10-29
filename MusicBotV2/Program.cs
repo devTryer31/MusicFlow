@@ -34,7 +34,7 @@ namespace MusicBotV2
 			
 			bot!.StartBot();
 
-			host.Run();
+			await host.RunAsync();
 			bot.StopBot();
 		}
 

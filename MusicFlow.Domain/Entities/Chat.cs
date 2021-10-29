@@ -14,5 +14,10 @@ namespace MusicFlow.Domain.Entities
 		public long? HostUserId { get; set; }
 
 		public string RefreshToken { get; set; }
+
+		public int? ExpiresIn { get; set; }
+
+		[Column(TypeName = "long")]
+		public DateTime? CreatedAt { get; set; }
 	}
 }

@@ -112,6 +112,8 @@ namespace MusicBotV2.Services.BotServices
 					chat.Token = null;
 					chat.HostUserId = null;
 					chat.RefreshToken = null;
+					chat.ExpiresIn = null;
+					chat.CreatedAt = null;
 
 					_Db.Chats.Update(chat);
 					await _Db.SaveChangesAsync(cancellationToken);

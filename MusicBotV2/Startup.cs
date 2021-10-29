@@ -54,7 +54,7 @@ namespace MusicBotV2
 			{
 				endpoints.MapControllerRoute(
 					"default",
-					"/{controller=Home}/{action=Index}/{id?}"
+					"/{controller=Authentication}/{action=Hello}"
 				);
 			});
 		}

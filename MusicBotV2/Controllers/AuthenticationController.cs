@@ -19,6 +19,8 @@ namespace MusicBotV2.Controllers
 			_BotClient = botService.BotClient;
 		}
 
+		public IActionResult Hello() => Content("Hello from MusicFlow");
+
 		// http://localhost:5000/Authentication?code=KZws3Qz6EVkfN&state=12345+465
 		public async Task<IActionResult> Index(string code, string state)
 		{
