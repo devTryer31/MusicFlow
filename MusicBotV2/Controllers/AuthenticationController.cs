@@ -19,13 +19,14 @@ namespace MusicBotV2.Controllers
 			_BotClient = botService.BotClient;
 		}
 
-		public IActionResult Hello() => Content("Hello from MusicFlow");
-
 		// http://localhost:5000/Authentication?code=KZws3Qz6EVkfN&state=12345+465
 		public async Task<IActionResult> Index(string code, string state)
 		{
-			if (string.IsNullOrWhiteSpace(code) || state is null)
-				return BadRequest("Нет параметра(ов) для авторизации.");
+			if (string.IsNullOrWhiteSpace(code) && string.IsNullOrEmpty(state))
+				return View("Index", ("Hello from MusicFlow!", "#E8E8E8"));
+
+			if (string.IsNullOrWhiteSpace(code) || string.IsNullOrEmpty(state))
+				return View("Index", ("Ошибка: Нет параметра(ов) для авторизации.", "#FFA07A"));
 
 			var splitted = state.Split('+').Select(long.Parse).ToList();
 			long chatId = splitted[0], hostId = splitted[1];
@@ -40,7 +41,7 @@ namespace MusicBotV2.Controllers
 
 			var chat = await _BotClient.GetChatAsync(chatId);
 
-			return Content($"В чат '{chat.Title}' был установлен хост.");
+			return View("Index", ($"В чат '{chat.Title}' был установлен хост.", "#90EE90"));
 		}
 	}
 }
