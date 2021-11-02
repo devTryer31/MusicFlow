@@ -15,12 +15,29 @@ namespace MusicBotV2.Services.BotServices
 {
 	public class Handlers
 	{
+		#region Messages
+
 		private const string WrongLinkMessage = "Неверная ссылка";
 		private const string ScsTrackMessage = "Трек успешно добавлен.";
 		private const string ErrTrackMessage = "Ошибка добавления трека.";
+
+		private const string HelpAnswerMessage =
+			@"/host - Установить Spotify аккаунт в качестве хоста
+/unhost - Снять хост с данного Spotify аккаунта
+/help - Список команд
+
+Или отправьте ссылку на песню для добавления в очередь (поддерживаются Spotify, Apple Music и Yandex Music)";
+
+		#endregion
+
+		#region Commands
+
 		private const string SetHostCommand = "/host";
 		private const string RemoveHostCommand = "/unhost";
+		private const string HelpCommand = "/help";
 
+		#endregion
+		
 		private readonly IMusicService _MusicService;
 		private readonly MusicFlowDb _Db;
 
@@ -67,6 +84,7 @@ namespace MusicBotV2.Services.BotServices
 			if (chat?.HostUserId is not null)
 				host = await botClient.GetChatMemberAsync(chatId, chat.HostUserId.Value, cancellationToken);
 
+
 			//SetHost handling.
 			if (current_message.ToLower() == SetHostCommand) {
 				if (host is not null) {
@@ -112,6 +130,8 @@ namespace MusicBotV2.Services.BotServices
 					chat.Token = null;
 					chat.HostUserId = null;
 					chat.RefreshToken = null;
+					chat.ExpiresIn = null;
+					chat.CreatedAt = null;
 
 					_Db.Chats.Update(chat);
 					await _Db.SaveChangesAsync(cancellationToken);
@@ -127,6 +147,16 @@ namespace MusicBotV2.Services.BotServices
 				await botClient.SendTextMessageAsync(
 					chatId,
 					"Вам недоступна данная комманда.",
+					replyToMessageId: update.Message.MessageId,
+					cancellationToken: cancellationToken
+				).ConfigureAwait(false);
+				return;
+			}
+
+			if (current_message.ToLower() == HelpCommand)
+			{
+				await botClient.SendTextMessageAsync(chatId,
+					HelpAnswerMessage,
 					replyToMessageId: update.Message.MessageId,
 					cancellationToken: cancellationToken
 				).ConfigureAwait(false);

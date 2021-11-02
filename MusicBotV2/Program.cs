@@ -25,7 +25,7 @@ namespace MusicBotV2
 			using var scope = host.Services.CreateScope();
 			var bot = scope.ServiceProvider.GetService<BotService>();
 			var dbContext = scope.ServiceProvider.GetService<MusicFlowDb>();
-			var migrations = await dbContext.Database.GetPendingMigrationsAsync();
+			var migrations = await dbContext!.Database.GetPendingMigrationsAsync();
 
 			if (migrations.Any())
 			{
@@ -34,7 +34,7 @@ namespace MusicBotV2
 			
 			bot!.StartBot();
 
-			host.Run();
+			await host.RunAsync();
 			bot.StopBot();
 		}
 
@@ -43,6 +43,7 @@ namespace MusicBotV2
 				  .ConfigureWebHostDefaults(webBuilder =>
 				  {
 					  webBuilder.UseStartup<Startup>();
+					  webBuilder.UseIIS();
 				  });
 	}
 }
