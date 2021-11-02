@@ -38,7 +38,7 @@ namespace MusicBotV2
 			
 			services.AddSingleton<BotService>();
 
-			services.AddControllers();
+			services.AddControllersWithViews();
 		}
 
 		// This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -48,13 +48,15 @@ namespace MusicBotV2
 				app.UseDeveloperExceptionPage();
 			}
 
+			app.UseStaticFiles();
 			app.UseRouting();
+
 
 			app.UseEndpoints(endpoints =>
 			{
 				endpoints.MapControllerRoute(
 					"default",
-					"/{controller=Authentication}/{action=Hello}"
+					"/{controller=Authentication}/{action=Index}/{id?}"
 				);
 			});
 		}
