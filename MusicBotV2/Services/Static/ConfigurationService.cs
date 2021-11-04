@@ -7,7 +7,7 @@ namespace MusicBotV2.Services.Static
 {
     public static class ConfigurationService
     { 
-	    public const string ServerUri = "http://musicflow.xyz";
+	    public const string ServerUri = @"https://musicbotv220211102154604.azurewebsites.net";
         public const string ServerAuthStrUri = ServerUri + "/Authentication";
         public static readonly Uri ServerAuthUri = new(ServerAuthStrUri);
         

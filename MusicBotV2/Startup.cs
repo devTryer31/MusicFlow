@@ -3,16 +3,10 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using MusicBotV2.Services;
 using MusicBotV2.Services.BotServices;
 using MusicBotV2.Services.Interfaces;
-using MusicBotV2.Services.Static;
 using MusicFlow.DAL.Context;
 
 namespace MusicBotV2
@@ -47,6 +41,8 @@ namespace MusicBotV2
 			if (env.IsDevelopment()) {
 				app.UseDeveloperExceptionPage();
 			}
+
+			app.UseHttpsRedirection();
 
 			app.UseStaticFiles();
 			app.UseRouting();
