@@ -31,41 +31,36 @@ namespace MusicBotV2.Services
 			_Db = db;
 		}
 
-		public async Task AuthenticationFromRawTokenAsync(string rawToken, long chatId, long hostId)
+		/// <summary> PKCE Spotify is used. </summary>
+		/// <param name="rawToken">Raw token from Spotify authentication.</param>
+		/// <param name="chatId">Telegram chat id.</param>
+		/// <param name="hostId">Telegram chat member id for host definition.</param>
+		/// <returns>True if authentication passed else false.</returns>
+		public async Task<bool> AuthenticationFromRawTokenAsync(string rawToken, long chatId, long hostId)
 		{
+			var chat = await _Db.Chats.FirstOrDefaultAsync(ch => ch.TelegramChatId == chatId);
+
+			if (chat is not null && chat.IsHostEstablished)
+				return false;
+
 			PKCETokenResponse response = await new OAuthClient().RequestToken(
 				new PKCETokenRequest(ConfigurationService.ClientID!, rawToken, ConfigurationService.ServerAuthUri, _verifier.verifier)
 			).ConfigureAwait(false);
-			//var authenticator = new PKCEAuthenticator(ConfigurationService.ClientID!, token!);
-			//authenticator.TokenRefreshed += (sender, t) =>
-			//	token = t; // TODO: database adding.
 
-			//var config = SpotifyClientConfig.CreateDefault()
-			//	.WithAuthenticator(authenticator);
-
-			//var spotify = new SpotifyClient(config);
-			var chat = await _Db.Chats.FirstOrDefaultAsync(ch => ch.TelegramChatId == chatId);
-			if (chat is null) {
-				await _Db.Chats.AddAsync(new Chat {
+			if (chat is null) {//Create new db item.
+				chat = new Chat {
 					TelegramChatId = chatId,
-					Token = response.AccessToken,
-					HostUserId = hostId,
-					RefreshToken = response.RefreshToken,
-					ExpiresIn = response.ExpiresIn,
-					CreatedAt = response.CreatedAt,
-
-				}).ConfigureAwait(false);
+				};
+				chat.SetHost(hostId, response.RefreshToken, response.ExpiresIn, response.AccessToken, response.CreatedAt);
+				await _Db.Chats.AddAsync(chat).ConfigureAwait(false);
 			}
-			else {
-				chat.HostUserId = hostId;
-				chat.Token = response.AccessToken;
-				chat.RefreshToken = response.RefreshToken;
-				chat.ExpiresIn = response.ExpiresIn;
-				chat.CreatedAt = response.CreatedAt;
+			else {//If db item exist, but host unset.
+				chat.SetHost(hostId, response.RefreshToken, response.ExpiresIn, response.AccessToken, response.CreatedAt);
 				_Db.Chats.Update(chat);
 			}
 
 			await _Db.SaveChangesAsync();
+			return true;
 		}
 
 		/// <returns>Return null if thrown APIException with message "Player command failed: No active device found"</returns>
@@ -102,9 +97,7 @@ namespace MusicBotV2.Services
 				Scope = new List<string> { UserModifyPlaybackState },
 				State = chatId + "+" + hostId
 			};
-
-
-			//return SpotifyManager.AuthenticationLink + $"&state={chat_id}";
+			
 			return request.ToUri().ToString();
 		}
 
@@ -115,15 +108,9 @@ namespace MusicBotV2.Services
 			var chat = await _Db.Chats.FirstOrDefaultAsync(ch => ch.TelegramChatId == chatId)
 				.ConfigureAwait(false);
 
-			if (chat?.HostUserId is null)
-				if (!(string.IsNullOrWhiteSpace(chat?.Token) && string.IsNullOrWhiteSpace(chat?.RefreshToken)
-																		&& chat?.CreatedAt is null && chat?.ExpiresIn is null))
-					throw new DataException($"Invalid class {nameof(chat)} contract fields values when host is not set.");
-				else
-					return chat;
+			if (chat is null || !chat.IsHostEstablished)
+				return chat;
 
-			//If refresh is not required
-			//if ((DateTime.UtcNow - chat.CreatedAt.Value).TotalSeconds <= chat.ExpiresIn.Value)
 			if (chat.CreatedAt!.Value.AddSeconds(chat.ExpiresIn!.Value) > DateTime.UtcNow)
 				return chat;
 
@@ -131,10 +118,7 @@ namespace MusicBotV2.Services
 				new PKCETokenRefreshRequest(ConfigurationService.ClientID!, chat.RefreshToken)
 			);
 
-			chat.Token = response.AccessToken;
-			chat.RefreshToken = response.RefreshToken;
-			chat.ExpiresIn = response.ExpiresIn;
-			chat.CreatedAt = response.CreatedAt;
+			chat.UpdateHost(response.RefreshToken, response.ExpiresIn, response.AccessToken, response.CreatedAt);
 
 			_Db.Chats.Update(chat);
 			await _Db.SaveChangesAsync();

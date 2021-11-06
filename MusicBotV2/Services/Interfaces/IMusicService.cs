@@ -4,7 +4,7 @@ namespace MusicBotV2.Services.Interfaces
 {
 	public interface IMusicService
 	{
-		Task AuthenticationFromRawTokenAsync(string rawToken, long chatId, long hostId);
+		Task<bool> AuthenticationFromRawTokenAsync(string rawToken, long chatId, long hostId);
 
 		Task<bool?> AddToQueueAsync(string correctMusicLink, long chatId);
 	}

@@ -127,11 +127,7 @@ namespace MusicBotV2.Services.BotServices
 				}
 
 				if (host.User.Id == current_user) {
-					chat.Token = null;
-					chat.HostUserId = null;
-					chat.RefreshToken = null;
-					chat.ExpiresIn = null;
-					chat.CreatedAt = null;
+					chat.RemoveHost();
 
 					_Db.Chats.Update(chat);
 					await _Db.SaveChangesAsync(cancellationToken);
@@ -153,6 +149,7 @@ namespace MusicBotV2.Services.BotServices
 				return;
 			}
 
+			//Help handling
 			if (current_message.ToLower() == HelpCommand)
 			{
 				await botClient.SendTextMessageAsync(chatId,
